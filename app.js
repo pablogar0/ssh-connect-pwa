@@ -11,6 +11,81 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// Clase para manejar la información de red
+class NetworkManager {
+    constructor() {
+        this.statusElement = document.getElementById('connectionStatus');
+        this.typeElement = document.getElementById('connectionType');
+        this.speedElement = document.getElementById('connectionSpeed');
+        this.ipElement = document.getElementById('localIP');
+        this.refreshButton = document.getElementById('refreshNetwork');
+        
+        this.setupEventListeners();
+        this.updateNetworkInfo();
+    }
+
+    setupEventListeners() {
+        // Actualizar cuando cambie la conexión
+        window.addEventListener('online', () => this.updateNetworkInfo());
+        window.addEventListener('offline', () => this.updateNetworkInfo());
+        
+        // Actualizar cuando cambie el tipo de conexión
+        if ('connection' in navigator) {
+            navigator.connection.addEventListener('change', () => this.updateNetworkInfo());
+        }
+        
+        // Botón de actualizar
+        this.refreshButton.addEventListener('click', () => this.updateNetworkInfo());
+    }
+
+    async updateNetworkInfo() {
+        // Estado de conexión
+        const isOnline = navigator.onLine;
+        this.statusElement.textContent = isOnline ? 'Conectado' : 'Desconectado';
+        this.statusElement.className = isOnline ? 'status-online' : 'status-offline';
+
+        // Tipo de conexión
+        if ('connection' in navigator) {
+            const connection = navigator.connection;
+            this.typeElement.textContent = this.getConnectionType(connection.type);
+            this.speedElement.textContent = this.getConnectionSpeed(connection);
+        } else {
+            this.typeElement.textContent = 'No disponible';
+            this.speedElement.textContent = 'No disponible';
+        }
+
+        // Intentar obtener IP local
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            this.ipElement.textContent = data.ip;
+        } catch (error) {
+            this.ipElement.textContent = 'No disponible';
+        }
+    }
+
+    getConnectionType(type) {
+        const types = {
+            'bluetooth': 'Bluetooth',
+            'cellular': 'Datos móviles',
+            'ethernet': 'Ethernet',
+            'none': 'Sin conexión',
+            'wifi': 'WiFi',
+            'wimax': 'WiMAX',
+            'other': 'Otra',
+            'unknown': 'Desconocida'
+        };
+        return types[type] || 'Desconocido';
+    }
+
+    getConnectionSpeed(connection) {
+        if (connection.downlink) {
+            return `${connection.downlink} Mbps`;
+        }
+        return 'No disponible';
+    }
+}
+
 // Clase para manejar las conexiones SSH
 class SSHManager {
     constructor() {
@@ -101,5 +176,6 @@ class SSHManager {
     }
 }
 
-// Inicializar el manejador de SSH
+// Inicializar los manejadores
+const networkManager = new NetworkManager();
 const sshManager = new SSHManager(); 

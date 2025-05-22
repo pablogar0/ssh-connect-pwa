@@ -12,6 +12,30 @@
 <body>
     <div class="container">
         <h1>SSH Connect</h1>
+        
+        <div class="network-info">
+            <h2>Información de Red</h2>
+            <div id="networkStatus" class="network-status">
+                <div class="network-item">
+                    <span class="label">Estado:</span>
+                    <span id="connectionStatus">Verificando...</span>
+                </div>
+                <div class="network-item">
+                    <span class="label">Tipo de conexión:</span>
+                    <span id="connectionType">Verificando...</span>
+                </div>
+                <div class="network-item">
+                    <span class="label">Velocidad:</span>
+                    <span id="connectionSpeed">Verificando...</span>
+                </div>
+                <div class="network-item">
+                    <span class="label">IP Local:</span>
+                    <span id="localIP">Verificando...</span>
+                </div>
+            </div>
+            <button id="refreshNetwork" class="refresh-btn">Actualizar información</button>
+        </div>
+
         <form id="sshForm" class="ssh-form">
             <div class="form-group">
                 <label for="usuario">Usuario:</label>
