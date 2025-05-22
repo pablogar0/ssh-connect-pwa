@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ssh-connect-v1';
+const CACHE_NAME = 'ssh-connect-v2';
 const ASSETS_TO_CACHE = [
     '.',
     './index.html',
@@ -17,6 +17,8 @@ self.addEventListener('install', (event) => {
                 return cache.addAll(ASSETS_TO_CACHE);
             })
     );
+    // Forzar la activación inmediata
+    self.skipWaiting();
 });
 
 // Activación del Service Worker
@@ -30,6 +32,9 @@ self.addEventListener('activate', (event) => {
                     }
                 })
             );
+        }).then(() => {
+            // Tomar control inmediatamente
+            return clients.claim();
         })
     );
 });
@@ -39,7 +44,22 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
-                return response || fetch(event.request);
+                // Siempre intentar obtener una nueva versión de la red
+                return fetch(event.request)
+                    .then(networkResponse => {
+                        // Actualizar la caché con la nueva versión
+                        if (networkResponse.ok) {
+                            const responseClone = networkResponse.clone();
+                            caches.open(CACHE_NAME).then(cache => {
+                                cache.put(event.request, responseClone);
+                            });
+                        }
+                        return networkResponse;
+                    })
+                    .catch(() => {
+                        // Si falla la red, usar la versión en caché
+                        return response;
+                    });
             })
     );
 }); 
